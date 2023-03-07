@@ -7,43 +7,43 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @Slf4j
-public class UserController {
-    private final Set<User> users = new HashSet<>();
-    private static Integer id = 1;
-
+public class UserController extends Controller<User> {
+    private final Map<Integer, User> users = new HashMap<>();
+    private int id = 1;
 
     @PostMapping("/users")
-    public User createUser(@RequestBody User user) {
+    public User create(@RequestBody User user) {
         checkUserParams(user);
-        log.info("Добавление нового пользователя.");
+        log.info("Добавление нового пользователя {}.", user);
         user.setId(id);
-        users.add(getUserWithNonEmptyName(user));
+        users.put(user.getId(), getUserWithNonEmptyName(user));
         id++;
         return user;
     }
 
     @PutMapping("/users")
-    public User updateUser(@RequestBody User user) {
+    public User update(@RequestBody User user) {
         checkUserParams(user);
-        User userWithOldParams = getUserById(user.getId());
+        User userWithOldParams = users.get(user.getId());
         if (userWithOldParams == null) {
             throw new NoSuitableUnitException("Пользователя с таким id нет в списке!");
         }
 
-        users.remove(userWithOldParams);
-        log.info("Изменение данных имеющегося пользователя {}.", user.getName());
-        users.add(getUserWithNonEmptyName(user));
+        log.info("Изменение данных имеющегося пользователя {}.", userWithOldParams);
+        users.put(user.getId(), getUserWithNonEmptyName(user));
         return user;
     }
 
     @GetMapping("/users")
-    public Set<User> getUsers() {
-        return users;
+    public List<User> get() {
+        log.info("Получение списка пользователей.");
+        List<User> userList = new ArrayList<>();
+        userList.addAll(users.values());
+        return userList;
     }
 
     private void checkUserParams(User user) {
@@ -57,18 +57,9 @@ public class UserController {
     }
 
     private User getUserWithNonEmptyName(User user) {
-        if (user.getName() == null || user.getName().equals("")) {
+        if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
         return user;
-    }
-
-    private User getUserById(int id) {
-        for (User user: users) {
-            if (user.getId() == id) {
-                return user;
-            }
-        }
-        return null;
     }
 }

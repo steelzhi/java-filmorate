@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -19,40 +18,52 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser() {
-        User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
+    void createCorrectUser() {
+        User user = new User(null, "test@ya.ru", "Vasya54", "Vasily",
                 LocalDate.of(1990, 01, 01));
-        controller.createUser(user1);
-        assertTrue(controller.getUsers().size() == 1,
+        controller.create(user);
+        assertTrue(controller.get().size() == 1,
                 "Пользователь некорректно добавлен в список пользователей");
-        assertTrue(controller.getUsers().contains(user1),
+        assertTrue(controller.get().contains(user),
                 "Список пользователей не содержит добавленного пользователя");
+    }
 
-        User user2 = new User(null, "", "Vasya54", "Vasily",
+    @Test
+    void createUserWithEmptyEmail() {
+        User user = new User(null, "", "Vasya54", "Vasily",
                 LocalDate.of(1990, 01, 01));
-        ValidationException validationException2 = assertThrows(ValidationException.class,
-                () -> controller.createUser(user2));
-        assertEquals("Введены некорректные параметры пользователя!", validationException2.getMessage(),
+        ValidationException validationException = assertThrows(ValidationException.class,
+                () -> controller.create(user));
+        assertEquals("Введены некорректные параметры пользователя!", validationException.getMessage(),
                 "Добавлен пользователь с пустым email");
+    }
 
-        User user3 = new User(null, "test@ya.ru", "", "Vasily",
+    @Test
+    void createUserWithEmptyLogin() {
+        User user = new User(null, "test@ya.ru", "", "Vasily",
                 LocalDate.of(1990, 01, 01));
-        ValidationException validationException3 = assertThrows(ValidationException.class,
-                () -> controller.createUser(user3));
-        assertEquals("Введены некорректные параметры пользователя!", validationException3.getMessage(),
+        ValidationException validationException = assertThrows(ValidationException.class,
+                () -> controller.create(user));
+        assertEquals("Введены некорректные параметры пользователя!", validationException.getMessage(),
                 "Добавлен пользователь с пустым логином");
+    }
 
-        User user4 = new User(null, "test@ya.ru", "Vasya54", "",
+    @Test
+    void createUserWithEmptyName() {
+        User user = new User(null, "test@ya.ru", "Vasya54", "",
                 LocalDate.of(1990, 01, 01));
-        controller.createUser(user4);
-        assertTrue(user4.getName().equals(user4.getLogin()),
+        controller.create(user);
+        assertTrue(user.getName().equals(user.getLogin()),
                 "Пользователю без имени не был автоматически присвоен логин в качестве имени");
+    }
 
-        User user5 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
+    @Test
+    void createUserWithIncorrectDate() {
+        User user = new User(null, "test@ya.ru", "Vasya54", "Vasily",
                 LocalDate.of(2990, 01, 01));
-        ValidationException validationException5 = assertThrows(ValidationException.class,
-                () -> controller.createUser(user5));
-        assertEquals("Введены некорректные параметры пользователя!", validationException5.getMessage(),
+        ValidationException validationException = assertThrows(ValidationException.class,
+                () -> controller.create(user));
+        assertEquals("Введены некорректные параметры пользователя!", validationException.getMessage(),
                 "Добавлен пользователь с датой рождения после текущей даты");
     }
 
@@ -60,18 +71,18 @@ class UserControllerTest {
     void updateUser() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
                 LocalDate.of(1990, 01, 01));
-        controller.createUser(user1);
+        controller.create(user1);
         Integer user1Id = user1.getId();
         User user2 = new User(3, "nottest@gmail.com", "AlexTheGreat", "Alexander",
                 LocalDate.of(1980, 03, 05));
         user2.setId(user1.getId());
-        controller.updateUser(user2);
+        controller.update(user2);
 
-        assertTrue(controller.getUsers().size() == 1,
+        assertTrue(controller.get().size() == 1,
                 "Пользователь некорректно обновлен в списке пользователей");
-        assertTrue(controller.getUsers().contains(user2),
+        assertTrue(controller.get().contains(user2),
                 "Список пользователей не содержит обновленного пользователя");
-        assertFalse(controller.getUsers().contains(user1),
+        assertFalse(controller.get().contains(user1),
                 "Список пользователей содержит необновленного пользователя");
     }
 
@@ -79,17 +90,17 @@ class UserControllerTest {
     void getUsers() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
                 LocalDate.of(1990, 01, 01));
-        controller.createUser(user1);
+        controller.create(user1);
         User user2 = new User(3, "nottest@gmail.com", "AlexTheGreat", "Alexander",
                 LocalDate.of(1980, 03, 05));
         user2.setId(user1.getId());
-        controller.createUser(user2);
+        controller.create(user2);
 
-        assertTrue(controller.getUsers().size() == 2,
+        assertTrue(controller.get().size() == 2,
                 "Пользователи некорректно добавлены в список пользователей");
-        assertTrue(controller.getUsers().contains(user2), "Список пользователей не содержит пользователя "
+        assertTrue(controller.get().contains(user2), "Список пользователей не содержит пользователя "
                 + user1.getName());
-        assertTrue(controller.getUsers().contains(user2), "Список пользователей не содержит пользователя "
+        assertTrue(controller.get().contains(user2), "Список пользователей не содержит пользователя "
                 + user2.getName());
     }
 }
