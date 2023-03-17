@@ -1,68 +1,62 @@
 /*
-Никита, приветствую!
-Взаимно)
-Исправления внес, проверьте, пожалуйста.
+1. Класс InMemoryStorage
  */
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@Slf4j
-public class FilmController extends Controller<Film> {
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int id = 1;
-    private static final int MAX_LENGTH = 200;
+@RequestMapping("/films")
+public class FilmController {
+    private final FilmService filmService;
+    private final FilmStorage filmStorage;
 
-    @PostMapping("/films")
-    public Film create(@RequestBody Film film) {
-        checkFilmParams(film);
-        log.info("Добавление нового фильма {}.", film);
-        film.setId(id);
-        films.put(film.getId(), film);
-        id++;
-        return film;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+        filmStorage = filmService.getFilmStorage();
     }
 
-    @PutMapping("/films")
-    public Film update(@RequestBody Film film) {
-        checkFilmParams(film);
-        Film filmWithOldParams = films.get(film.getId());
-        if (filmWithOldParams == null) {
-            throw new NoSuitableUnitException("Фильма с таким id нет в списке!");
-        }
-
-        log.info("Изменение данных ранее добавленного фильма \"{}\".", filmWithOldParams);
-        films.put(film.getId(), film);
-        return film;
+    @PostMapping
+    public Film create(@RequestBody @Valid Film film) {
+        return filmStorage.create(film);
     }
 
-    @GetMapping("/films")
+    @PutMapping
+    public Film update(@RequestBody @Valid Film film) {
+        return filmStorage.update(film);
+    }
+
+    @GetMapping
     public List<Film> get() {
-        log.info("Получение списка фильмов.");
-        List<Film> filmList = new ArrayList<>();
-        filmList.addAll(films.values());
-        return filmList;
+        return filmStorage.get();
     }
 
-    private void checkFilmParams(Film film) {
-        if (film == null
-                || film.getName().isBlank()
-                || film.getDescription().isBlank()
-                || film.getDescription().length() > MAX_LENGTH
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0) {
-            throw new ValidationException("Введены некорректные параметры фильма!");
-        }
+    @GetMapping("/{id}")
+    public Film get(@PathVariable Long id) {
+        return filmStorage.get(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public Film putLike(@PathVariable @Positive Long id, @PathVariable @Positive Long userId) {
+        return filmService.putLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Film deleteLike(@PathVariable @Positive Long id, @PathVariable @Positive Long userId) {
+        return filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getMostLikedFilms(@RequestParam(defaultValue = "10") @Positive Integer count) {
+        return filmService.getMostLikedFilms(count);
     }
 }

@@ -1,65 +1,69 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
-import java.util.*;
+import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import java.util.List;
+import java.util.Set;
 
 @RestController
-@Slf4j
-public class UserController extends Controller<User> {
-    private final Map<Integer, User> users = new HashMap<>();
-    private int id = 1;
+@RequestMapping("/users")
+public class UserController {
+    private final UserService userService;
+    private final UserStorage userStorage;
 
-    @PostMapping("/users")
-    public User create(@RequestBody User user) {
-        checkUserParams(user);
-        log.info("Добавление нового пользователя {}.", user);
-        user.setId(id);
-        users.put(user.getId(), getUserWithNonEmptyName(user));
-        id++;
-        return user;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+        userStorage = userService.getUserStorage();
     }
 
-    @PutMapping("/users")
-    public User update(@RequestBody User user) {
-        checkUserParams(user);
-        User userWithOldParams = users.get(user.getId());
-        if (userWithOldParams == null) {
-            throw new NoSuitableUnitException("Пользователя с таким id нет в списке!");
-        }
-
-        log.info("Изменение данных имеющегося пользователя {}.", userWithOldParams);
-        users.put(user.getId(), getUserWithNonEmptyName(user));
-        return user;
+    @PostMapping
+    public User create(@RequestBody @Valid User user) {
+        return userStorage.create(user);
     }
 
-    @GetMapping("/users")
+    @PutMapping
+    public User update(@RequestBody @Valid User user) {
+        return userStorage.update(user);
+    }
+
+    @GetMapping
     public List<User> get() {
-        log.info("Получение списка пользователей.");
-        List<User> userList = new ArrayList<>();
-        userList.addAll(users.values());
-        return userList;
+        return userStorage.get();
     }
 
-    private void checkUserParams(User user) {
-        if (user.getEmail().isBlank()
-                || !user.getEmail().contains("@")
-                || user.getLogin().isBlank()
-                || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Введены некорректные параметры пользователя!");
-        }
+    @GetMapping("/{id}")
+    public User get(@PathVariable Long id) {
+        return userStorage.get(id);
     }
 
-    private User getUserWithNonEmptyName(User user) {
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-        return user;
+    @PutMapping("/{id}/friends/{friendId}")
+    public Set<Long> addFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
+        return userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public Set<Long> deleteFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
+        return userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable @Positive Long id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable @Positive Long id, @PathVariable @Positive Long otherId) {
+        return userService.getCommonFriends(id, otherId);
+    }
+
+    public UserService getUserService() {
+        return userService;
     }
 }
