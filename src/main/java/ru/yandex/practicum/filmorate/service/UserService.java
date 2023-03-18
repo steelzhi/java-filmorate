@@ -79,22 +79,14 @@ public class UserService {
 
         Set<Long> friendsIdsOfFirstUser = users.get(id).getFriendsIds();
         Set<Long> friendsIdsOfSecondUser = users.get(otherId).getFriendsIds();
-        if (friendsIdsOfFirstUser == null) {
-            if (friendsIdsOfSecondUser == null) {
-                return new ArrayList<>();
-            } else {
-                return getUsersByIds(friendsIdsOfSecondUser);
-            }
-        } else {
-            if (friendsIdsOfSecondUser == null) {
-                return getUsersByIds(friendsIdsOfFirstUser);
-            } else {
-                Set<Long> commonFriendsIds = new HashSet<>();
-                commonFriendsIds.addAll(friendsIdsOfFirstUser);
-                commonFriendsIds.retainAll(friendsIdsOfSecondUser);
-                return getUsersByIds(commonFriendsIds);
-            }
+        if (friendsIdsOfFirstUser.isEmpty() || friendsIdsOfSecondUser.isEmpty()) {
+            return new ArrayList<>();
         }
+
+        Set<Long> commonFriendsIds = new HashSet<>();
+        commonFriendsIds.addAll(friendsIdsOfFirstUser);
+        commonFriendsIds.retainAll(friendsIdsOfSecondUser);
+        return getUsersByIds(commonFriendsIds);
     }
 
     private boolean doUsersExist(Long... receivedUsersIds) {

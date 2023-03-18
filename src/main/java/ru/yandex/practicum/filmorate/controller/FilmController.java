@@ -1,6 +1,3 @@
-/*
-1. Класс InMemoryStorage
- */
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/films")
-public class FilmController {
+public class FilmController extends CrudController<Film> {
     private final FilmService filmService;
     private final FilmStorage filmStorage;
 

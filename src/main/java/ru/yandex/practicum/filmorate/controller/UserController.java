@@ -13,7 +13,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
-public class UserController {
+public class UserController extends CrudController<User> {
     private final UserService userService;
     private final UserStorage userStorage;
 
@@ -61,9 +61,5 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable @Positive Long id, @PathVariable @Positive Long otherId) {
         return userService.getCommonFriends(id, otherId);
-    }
-
-    public UserService getUserService() {
-        return userService;
     }
 }

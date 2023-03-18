@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
-@RestControllerAdvice
+@RestControllerAdvice(value = "ru.yandex.practicum.filmorate")
 public class ErrorHandler {
 
     @ExceptionHandler(ValidationException.class)

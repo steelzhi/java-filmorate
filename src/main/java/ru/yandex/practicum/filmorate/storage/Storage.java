@@ -5,16 +5,15 @@ import java.util.Map;
 
 public interface Storage<T> {
 
-    public T create(T value);
+    T create(T value);
 
-    public T update(T value);
+    T update(T value);
 
-    public List<T> get();
+    List<T> get();
 
-    public T get(Long id);
+    T get(Long id);
 
-    public Long getId();
+    Long getId();
 
-    public Map<Long, T> getValues();
-
+    Map<Long, T> getValues();
 }
