@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -13,15 +13,27 @@ import java.util.*;
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
-    private Map<Long, User> users;
 
-    @Autowired
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
-    public UserStorage getUserStorage() {
-        return userStorage;
+    public User create(User user) {
+        checkUserParams(user);
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        checkUserParams(user);
+        return userStorage.update(user);
+    }
+
+    public List<User> get() {
+        return userStorage.get();
+    }
+
+    public User get(Long id) {
+        return userStorage.get(id);
     }
 
     public Set<Long> addFriend(Long id, Long friendId) {
@@ -31,8 +43,8 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = users.get(id);
-        User friendOfUser = users.get(friendId);
+        User user = getUsers().get(id);
+        User friendOfUser = getUsers().get(friendId);
         user.addFriend(friendId);
         friendOfUser.addFriend(id);
         return user.getFriendsIds();
@@ -45,8 +57,8 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = users.get(id);
-        User friendOfUser = users.get(friendId);
+        User user = getUsers().get(id);
+        User friendOfUser = getUsers().get(friendId);
         user.deleteFriend(friendId);
         friendOfUser.deleteFriend(id);
         return user.getFriendsIds();
@@ -60,13 +72,9 @@ public class UserService {
         }
 
         List<User> friends = new ArrayList<>();
-        Set<Long> friendsIds = users.get(id).getFriendsIds();
-        for (Long friendId : friendsIds) {
-            if (users.containsKey(friendId)) {
-                friends.add(users.get(friendId));
-            }
-        }
-
+        Set<Long> friendsIds = getUsers().get(id).getFriendsIds();
+        friendsIds.stream()
+                .forEach(o1 -> friends.add(getUsers().get(o1)));
         return friends;
     }
 
@@ -77,8 +85,8 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        Set<Long> friendsIdsOfFirstUser = users.get(id).getFriendsIds();
-        Set<Long> friendsIdsOfSecondUser = users.get(otherId).getFriendsIds();
+        Set<Long> friendsIdsOfFirstUser = getUsers().get(id).getFriendsIds();
+        Set<Long> friendsIdsOfSecondUser = getUsers().get(otherId).getFriendsIds();
         if (friendsIdsOfFirstUser.isEmpty() || friendsIdsOfSecondUser.isEmpty()) {
             return new ArrayList<>();
         }
@@ -89,10 +97,17 @@ public class UserService {
         return getUsersByIds(commonFriendsIds);
     }
 
+
+    private void checkUserParams(User user) {
+        if (user.getLogin().contains(" ")) {
+            log.info("Попытка добавить пользователя с пробелом в логине.");
+            throw new ValidationException("Введены некорректный логин пользователя!");
+        }
+    }
+
     private boolean doUsersExist(Long... receivedUsersIds) {
-        users = userStorage.getValues();
         for (Long id : receivedUsersIds) {
-            if (!users.containsKey(id)) {
+            if (!getUsers().containsKey(id)) {
                 return false;
             }
         }
@@ -101,11 +116,12 @@ public class UserService {
 
     private List<User> getUsersByIds(Set<Long> ids) {
         List<User> userList = new ArrayList<>();
-        for (Long id : ids) {
-            if (users.containsKey(id)) {
-                userList.add(users.get(id));
-            }
-        }
+        ids.stream()
+                .forEach(o1 -> userList.add(getUsers().get(o1)));
         return userList;
+    }
+
+    private Map<Long, User> getUsers() {
+        return userStorage.getValues();
     }
 }

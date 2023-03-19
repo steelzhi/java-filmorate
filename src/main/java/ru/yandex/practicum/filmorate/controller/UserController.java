@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -15,32 +14,30 @@ import java.util.Set;
 @RequestMapping("/users")
 public class UserController extends CrudController<User> {
     private final UserService userService;
-    private final UserStorage userStorage;
 
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
-        userStorage = userService.getUserStorage();
     }
 
     @PostMapping
     public User create(@RequestBody @Valid User user) {
-        return userStorage.create(user);
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@RequestBody @Valid User user) {
-        return userStorage.update(user);
+        return userService.update(user);
     }
 
     @GetMapping
     public List<User> get() {
-        return userStorage.get();
+        return userService.get();
     }
 
     @GetMapping("/{id}")
     public User get(@PathVariable Long id) {
-        return userStorage.get(id);
+        return userService.get(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

@@ -13,7 +13,5 @@ public interface Storage<T> {
 
     T get(Long id);
 
-    Long getId();
-
     Map<Long, T> getValues();
 }
