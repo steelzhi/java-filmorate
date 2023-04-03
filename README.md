@@ -1,32 +1,30 @@
 # java-filmorate
 Приложение для работы с фильмами и оценками пользователей
 
-![Диаграмм БД.](Диаграмма%20БД.png)
+![Диаграмма БД.](Диаграмма%20БД.png)
 
-Примеры запросов:
-1. Поиск 10 фильмов с наивысшим рейтингом:
-   SELECT name,
-          rating
-   FROM films
-   ORDER BY rating DESC
-   LIMIT 10;
-
-2. Отображение имен и логинов всех пользователей, которые поставили лайк фильму (id фильма = 1):
-   SELECT name,
-          login
-   FROM users AS u
-   RIGHT JOIN user_likes AS ul ON ul.user_id=u.user_id
-   WHERE ul.film_id = 1
-
-3. Поиск общих друзей у 2-х пользователей (с id = 1 и id = 2):
-   SELECT friend_two_id AS common_friends
-   FROM friendship
-   WHERE friend_one_id = 2
-     AND friend_two_id IN (SELECT friend_two_id AS all_friends_of_first
-                           FROM friendship
-                           WHERE friend_one_id = 1) AS first_user_friends;
-
-Пояснение по содержимому булева поля friendship_status таблице friendship:
-- frienship_status = 1 -> оба есть друг у друга в друзьях;
-- frienship_status = 0 -> user произвел добавление в друзья, но потенциальный друг (пока) не принял приглашение;
-Всех, кто отсутствует в поле friend_two_id для user-а, user в друзья не добавлял.
+Примеры запросов для основных операций в приложении: <br>
+1. Фильмы: <br>
+  1.1. POST-запросы: <br>
+      1.1.1. `/films` - добавление нового фильма; <br>
+  1.2. GET-запросы: <br>
+      1.2.1. `/films` - получение всех фильмов; <br>
+      1.2.2. `/films/{id}` - получение фильма по id; <br>
+      1.2.3. `/films/popular` - получение n наиболее популярных фильмов (по умолчанию, n = 10); <br>
+  1.3. PUT-запросы: <br>
+      1.3.1. `/films` - обновление существующего фильма; <br>
+      1.3.2. `/films/{id}/like/{userId}` - добавление фильму с id лайка от пользователя с userId; <br>
+  1.4. DELETE-запросы: <br>
+      1.4.1. `/films/{id}/like/{userId}` - удаление у фильма с id лайка от пользователя с userId; <br>
+2. Пользователи: <br>
+   2.1. POST-запросы: <br>
+     2.1.1. `/users` - создание нового пользователя; <br>
+   2.2. GET-запросы: <br>
+     2.2.1. `/users` - получение списка всех пользователей; <br>
+     2.2.2. `/users/{id}` - получение пользователя по id; <br>
+     2.2.3. `/users/{id}/friends` - получение списка друзей пользователя с id; <br>
+     2.2.4. `/users/{id}/friends/common/{otherId}` - получение списка общих друзей пользователей с id и otherId; <br>
+  2.3. PUT-запросы: <br>
+     2.3.1. `/users` - обновление существующего пользователя; <br>
+  2.4. DELETE-запросы: <br>
+     2.4.1. `/users/{id}/friends/{friendId}` - удаление у пользователя с id из списка друзей друга с friendId. <br>
