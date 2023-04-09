@@ -21,6 +21,10 @@ public class Film {
     private String name;
     @NotEmpty
     private String description;
+    @NotEmpty
+    private String genre;
+    @NotEmpty
+    private String rating;
     @NotNull
     private LocalDate releaseDate;
     @NotNull
