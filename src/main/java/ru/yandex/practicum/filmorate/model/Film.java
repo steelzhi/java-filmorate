@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,10 +22,10 @@ public class Film {
     private String name;
     @NotEmpty
     private String description;
-    @NotEmpty
-    private String genre;
-    @NotEmpty
-    private String rating;
+    @NotNull
+    private List<Genres> genres;
+    @NotNull
+    private Mpa mpa;
     @NotNull
     private LocalDate releaseDate;
     @NotNull

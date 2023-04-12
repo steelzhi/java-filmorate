@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -14,7 +16,7 @@ import java.util.*;
 public class UserService {
     private final UserStorage userStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -125,3 +127,19 @@ public class UserService {
         return userStorage.getValues();
     }
 }
+
+
+/*
+    public Set<Long> addFriend(Long id, Long friendId) {
+        log.info("Добавление в список друзей пользователя с id = {} друга с id = {}", id, friendId);
+        if (!doUsersExist(id, friendId)) {
+            throw new NoSuitableUnitException(
+                    "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
+        }
+
+        User user = getUsers().get(id);
+        User friendOfUser = getUsers().get(friendId);
+        user.addFriend(friendId);
+        friendOfUser.addFriend(id);
+        return user.getFriendsIds();
+    }*/

@@ -37,7 +37,7 @@ class UserControllerTest {
     @Test
     void createCorrectUser() {
         User user = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user);
         assertTrue(userController.get().size() == 1,
                 "Пользователь некорректно добавлен в список пользователей");
@@ -48,7 +48,7 @@ class UserControllerTest {
     @Test
     void createUserWithEmptyEmail() {
         User user = new User(null, "", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         boolean areUserParamsValid = areUserParamsValid(user);
         assertTrue(areUserParamsValid == false, "Введен пустой email.");
     }
@@ -56,7 +56,7 @@ class UserControllerTest {
     @Test
     void createUserWithEmptyLogin() {
         User user = new User(null, "test@ya.ru", "", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         boolean areUserParamsValid = areUserParamsValid(user);
         assertTrue(areUserParamsValid == false, "Введен пустой логин.");
     }
@@ -64,7 +64,7 @@ class UserControllerTest {
     @Test
     void createUserWithEmptyName() {
         User user = new User(null, "test@ya.ru", "Vasya54", "",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user);
         assertTrue(user.getName().equals(user.getLogin()),
                 "Пользователю без имени не был автоматически присвоен логин в качестве имени");
@@ -73,7 +73,7 @@ class UserControllerTest {
     @Test
     void createUserWithIncorrectDate() {
         User user = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(2990, 01, 01), new HashSet<>());
+                LocalDate.of(2990, 01, 01), new HashSet<>(), new HashSet<>());
         boolean areUserParamsValid = areUserParamsValid(user);
         assertTrue(areUserParamsValid == false, "Введена дата в будущем.");
     }
@@ -81,10 +81,10 @@ class UserControllerTest {
     @Test
     void updateUser() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         user2.setId(user1.getId());
         userController.update(user2);
 
@@ -99,10 +99,10 @@ class UserControllerTest {
     @Test
     void getUsers() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
 
         assertTrue(userController.get().size() == 2,
@@ -116,10 +116,10 @@ class UserControllerTest {
     @Test
     void getUser() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
 
         assertEquals(user1, userController.get(user1.getId()), "Некорректный возврат пользователя по id");
@@ -129,10 +129,10 @@ class UserControllerTest {
     @Test
     void addFriend() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
         userController.addFriend(user1.getId(), user2.getId());
 
@@ -147,10 +147,10 @@ class UserControllerTest {
     @Test
     void deleteFriend() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
         userController.addFriend(user1.getId(), user2.getId());
         userController.deleteFriend(user1.getId(), user2.getId());
@@ -164,13 +164,13 @@ class UserControllerTest {
     @Test
     void getFriends() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
         User user3 = new User(0L, "a@business.com", "Singkh", "Si",
-                LocalDate.of(1985, 06, 15), new HashSet<>());
+                LocalDate.of(1985, 06, 15), new HashSet<>(), new HashSet<>());
         userController.create(user3);
         userController.addFriend(user1.getId(), user2.getId());
         userController.addFriend(user1.getId(), user3.getId());
@@ -184,16 +184,16 @@ class UserControllerTest {
     @Test
     void getCommonFriends() {
         User user1 = new User(null, "test@ya.ru", "Vasya54", "Vasily",
-                LocalDate.of(1990, 01, 01), new HashSet<>());
+                LocalDate.of(1990, 01, 01), new HashSet<>(), new HashSet<>());
         userController.create(user1);
         User user2 = new User(3L, "nottest@gmail.com", "AlexTheGreat", "Alexander",
-                LocalDate.of(1980, 03, 05), new HashSet<>());
+                LocalDate.of(1980, 03, 05), new HashSet<>(), new HashSet<>());
         userController.create(user2);
         User user3 = new User(0L, "a@business.com", "Singkh", "Si",
-                LocalDate.of(1985, 06, 15), new HashSet<>());
+                LocalDate.of(1985, 06, 15), new HashSet<>(), new HashSet<>());
         userController.create(user3);
         User user4 = new User(null, "ab@vc.com", "Jay", "Jay",
-                LocalDate.of(1975, 07, 17), new HashSet<>());
+                LocalDate.of(1975, 07, 17), new HashSet<>(), new HashSet<>());
         userController.create(user4);
         userController.addFriend(user1.getId(), user2.getId());
         userController.addFriend(user1.getId(), user3.getId());
