@@ -27,9 +27,7 @@ public class User {
     @NotNull
     @PastOrPresent
     private LocalDate birthday;
-    @JsonIgnore
     private Set<Long> friendsIds = new HashSet<>();
-    @JsonIgnore
     private Set<Long> likedFilmsIds = new HashSet<>();
 
     public void addFriend(long friendId) {

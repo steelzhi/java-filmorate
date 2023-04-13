@@ -127,19 +127,3 @@ public class UserService {
         return userStorage.getValues();
     }
 }
-
-
-/*
-    public Set<Long> addFriend(Long id, Long friendId) {
-        log.info("Добавление в список друзей пользователя с id = {} друга с id = {}", id, friendId);
-        if (!doUsersExist(id, friendId)) {
-            throw new NoSuitableUnitException(
-                    "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
-        }
-
-        User user = getUsers().get(id);
-        User friendOfUser = getUsers().get(friendId);
-        user.addFriend(friendId);
-        friendOfUser.addFriend(id);
-        return user.getFriendsIds();
-    }*/

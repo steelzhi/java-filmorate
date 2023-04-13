@@ -31,7 +31,6 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
-    @JsonIgnore
     private Set<Long> userLikes = new HashSet<>();
 
     public Set<Long> getUserLikes() {

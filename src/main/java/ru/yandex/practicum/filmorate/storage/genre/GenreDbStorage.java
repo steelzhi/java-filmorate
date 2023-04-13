@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.genre;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.model.Genres;
 
 import java.sql.ResultSet;
@@ -21,9 +22,25 @@ public class GenreDbStorage implements GenreStorage{
     @Override
     public List<Genres> get() {
         log.info("Получение из БД всех жанров.");
-        String sql = "SELECT * FROM genres";
+        String sql = "SELECT * " +
+                "FROM genres";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
+    }
+
+    @Override
+    public Genres get(Long id) {
+        log.info("Получение из БД жанра c id = {}.", id);
+        String sql = "SELECT * " +
+                "FROM genres " +
+                "WHERE genre_id = ?";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToGenre(rs), id);
+
+        } catch (RuntimeException e) {
+            throw new NoSuitableUnitException("Жанра с таким id нет в БД");
+        }
     }
 
     private Genres mapRowToGenre(ResultSet rs) throws SQLException {
