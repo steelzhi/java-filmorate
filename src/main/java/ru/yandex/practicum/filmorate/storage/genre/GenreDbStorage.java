@@ -23,7 +23,8 @@ public class GenreDbStorage implements GenreStorage{
     public List<Genres> get() {
         log.info("Получение из БД всех жанров.");
         String sql = "SELECT * " +
-                "FROM genres";
+                "FROM genres " +
+                "ORDER BY genre_id;";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
     }

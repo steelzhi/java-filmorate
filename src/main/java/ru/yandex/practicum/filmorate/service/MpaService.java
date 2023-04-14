@@ -27,8 +27,10 @@ public class MpaService {
     }
 
     private boolean doesMpaExist(Long mpaId) {
-        if (get().contains(mpaId)) {
-            return true;
+        for (Mpa mpa : get()) {
+            if (mpa.getId() == mpaId) {
+                return true;
+            }
         }
         return false;
     }

@@ -182,8 +182,8 @@ public class UserDbStorage implements UserStorage {
     }
 
     private Set<Long> getAllFriendIds(Long userId) {
-        String firstQueryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ? AND friendship_status = true;";
-        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
+        String firstQueryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ?;";
+        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ? AND friendship_status = true;";
 
         List<Long> firstListOfFriends = jdbcTemplate.query(firstQueryFriendShipSelect,
                 (rs, rowNum) -> mapRowToId(rs, "friend_two_id"), userId);

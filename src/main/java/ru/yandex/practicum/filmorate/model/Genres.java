@@ -10,5 +10,5 @@ import javax.validation.constraints.NotNull;
 public class Genres {
     private int id;
     @NotNull
-    private String genre;
+    private String name;
 }

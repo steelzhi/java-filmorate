@@ -1,11 +1,14 @@
 MERGE INTO genres (genre) KEY (genre)
-VALUES ('Comedy'),
-       ('Action'),
-       ('Horror');
+VALUES ('Комедия'),
+       ('Драма'),
+       ('Мультфильм'),
+       ('Триллер'),
+       ('Документальный'),
+       ('Боевик');
 
 MERGE INTO mpa (mpa) KEY (mpa)
-VALUES ('PG-13'),
-       ('R'),
-       ('G'),
+VALUES ('G'),
        ('PG'),
+       ('PG-13'),
+       ('R'),
        ('NC-17');

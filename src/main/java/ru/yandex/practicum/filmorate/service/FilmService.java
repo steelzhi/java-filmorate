@@ -35,15 +35,18 @@ public class FilmService {
     }
 
     public Film create(Film film) {
-        checkFilmParams(film);
+        if (!areFilmParamsCorrect(film)) {
+            throw new ValidationException("Введены некорректные параметры фильма!");
+        }
+
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         if (!doesFilmExist(film.getId())) {
-            throw new NoSuitableUnitException("Фильм с указанным id не существуют!");
+            throw new NoSuitableUnitException("Фильм с указанным id не существует!");
         }
-        checkFilmParams(film);
+        areFilmParamsCorrect(film);
         return filmStorage.update(film);
     }
 
@@ -90,12 +93,13 @@ public class FilmService {
         }
     }
 
-    private void checkFilmParams(Film film) {
+    private boolean areFilmParamsCorrect(Film film) {
         if (film == null
                 || film.getDescription().length() > MAX_LENGTH
                 || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Введены некорректные параметры фильма!");
+            return false;
         }
+        return true;
     }
 
     private boolean doesUserExist(Long userId) {

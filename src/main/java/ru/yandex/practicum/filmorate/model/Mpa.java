@@ -10,5 +10,5 @@ import javax.validation.constraints.NotNull;
 public class Mpa {
     private int id;
     @NotNull
-    private String mpa;
+    private String name;
 }

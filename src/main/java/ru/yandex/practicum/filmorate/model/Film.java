@@ -22,7 +22,6 @@ public class Film {
     private String name;
     @NotEmpty
     private String description;
-    @NotNull
     private List<Genres> genres;
     @NotNull
     private Mpa mpa;

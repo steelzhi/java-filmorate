@@ -22,7 +22,8 @@ public class MpaDbStorage implements MpaStorage {
     public List<Mpa> get() {
         log.info("Получение всех рейтингов из БД.");
         String queryMpaSelect = "SELECT * " +
-                "FROM mpa;";
+                "FROM mpa " +
+                "ORDER BY mpa_id;";
 
         return jdbcTemplate.query(queryMpaSelect, (rs, rowNum) -> mapRowToMpa(rs));
     }
