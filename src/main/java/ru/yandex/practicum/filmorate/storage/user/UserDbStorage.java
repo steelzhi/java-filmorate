@@ -82,6 +82,51 @@ public class UserDbStorage implements UserStorage {
         }
     }
 
+    public Set<Long> addFriend(Long id, Long friendId) {
+        String queryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
+
+        List<Long> friendsOfSecond = jdbcTemplate.query(queryFriendShipSelect,
+                (rs, rowNum) -> mapRowToId(rs, "friend_one_id"), friendId);
+        if (friendsOfSecond.contains(id)) {
+            String queryFriendShipUpdate = "UPDATE friendship SET friendship_status = true WHERE friend_two_id = ? AND " +
+                    "friend_one_id = ?;";
+            jdbcTemplate.update(queryFriendShipUpdate, friendId, id);
+        } else {
+            String queryFriendShipInsert = "INSERT INTO friendship (friend_one_id, friend_two_id, friendship_status) " +
+                    "VALUES (?, ?, ?);";
+
+            jdbcTemplate.update(queryFriendShipInsert, id, friendId, false);
+        }
+
+        Set<Long> allFriendIds = getAllFriendIds(id);
+        return allFriendIds;
+    }
+
+    public Set<Long> deleteFriend(Long id, Long friendId) {
+        String queryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ?;";
+
+        List<Long> firstListFriendsOfFirst = jdbcTemplate.query(queryFriendShipSelect,
+                (rs, rowNum) -> mapRowToId(rs, "friend_two_id"), id);
+
+        queryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
+
+        List<Long> secondListFriendsOfFirst = jdbcTemplate.query(queryFriendShipSelect,
+                (rs, rowNum) -> mapRowToId(rs, "friend_one_id"), id);
+
+        if (!firstListFriendsOfFirst.isEmpty()) {
+            String queryFriendShipDelete = "DELETE FROM friendship WHERE friend_one_id = ? AND friend_two_id = ?;";
+            jdbcTemplate.update(queryFriendShipDelete, id, friendId);
+        }
+
+        if (!secondListFriendsOfFirst.isEmpty()) {
+            String queryFriendShipDelete = "DELETE FROM friendship WHERE friend_two_id = ? AND friend_one_id = ?;";
+            jdbcTemplate.update(queryFriendShipDelete, id, friendId);
+        }
+
+        Set<Long> allFriendIds = getAllFriendIds(id);
+        return allFriendIds;
+    }
+
     @Override
     public Map<Long, User> getValues() {
         log.info("Выгрузка всех пользователей из БД.");
@@ -110,23 +155,16 @@ public class UserDbStorage implements UserStorage {
 
     private User getUserWithAllFieldsFilled(User user) {
         Long userId = user.getId();
-        String firstQueryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ? AND friendship_status = true;";
-        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
-
-        List<Long> firstListOfFriends = jdbcTemplate.query(firstQueryFriendShipSelect, (rs, rowNum) -> mapRowToId(rs, "friend_two_id"), userId);
-        List<Long> secondListOfFriends = jdbcTemplate.query(secondQueryFriendShipSelect, (rs, rowNum) -> mapRowToId(rs, "friend_one_id"), userId);
-
-        Set<Long> allFriends = new HashSet<>();
-        allFriends.addAll(firstListOfFriends);
-        allFriends.addAll(secondListOfFriends);
+        Set<Long> allFriendIds = getAllFriendIds(userId);
 
         String queryUserLikesSelect = "SELECT film_id FROM user_likes WHERE user_id = ?;";
-        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect, (rs, rowNum) -> mapRowToId(rs, "film_id"), userId);
+        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect,
+                (rs, rowNum) -> mapRowToId(rs, "film_id"), userId);
 
         Set<Long> allLikedFilms = new HashSet<>();
         allLikedFilms.addAll(filmLikes);
 
-        user.setFriendsIds(allFriends);
+        user.setFriendsIds(allFriendIds);
         user.setLikedFilmsIds(allLikedFilms);
 
         return user;
@@ -141,5 +179,21 @@ public class UserDbStorage implements UserStorage {
             user.setName(user.getLogin());
         }
         return user;
+    }
+
+    private Set<Long> getAllFriendIds(Long userId) {
+        String firstQueryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ? AND friendship_status = true;";
+        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
+
+        List<Long> firstListOfFriends = jdbcTemplate.query(firstQueryFriendShipSelect,
+                (rs, rowNum) -> mapRowToId(rs, "friend_two_id"), userId);
+        List<Long> secondListOfFriends = jdbcTemplate.query(secondQueryFriendShipSelect,
+                (rs, rowNum) -> mapRowToId(rs, "friend_one_id"), userId);
+
+        Set<Long> allFriends = new HashSet<>();
+        allFriends.addAll(firstListOfFriends);
+        allFriends.addAll(secondListOfFriends);
+
+        return allFriends;
     }
 }

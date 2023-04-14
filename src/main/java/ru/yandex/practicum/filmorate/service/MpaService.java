@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 
@@ -19,6 +20,16 @@ public class MpaService {
     }
 
     public Mpa get(Long id) {
+        if (!doesMpaExist(id)) {
+            throw new NoSuitableUnitException("Рейтинг с указанным id не существует!");
+        }
         return mpaStorage.get(id);
+    }
+
+    private boolean doesMpaExist(Long mpaId) {
+        if (get().contains(mpaId)) {
+            return true;
+        }
+        return false;
     }
 }

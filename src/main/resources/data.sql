@@ -1,4 +1,3 @@
--- заглушка; с пустым data.sql программа не запускается :(
 MERGE INTO genres (genre) KEY (genre)
 VALUES ('Comedy'),
        ('Action'),

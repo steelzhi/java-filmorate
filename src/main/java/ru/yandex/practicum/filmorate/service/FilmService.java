@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -41,6 +40,9 @@ public class FilmService {
     }
 
     public Film update(Film film) {
+        if (!doesFilmExist(film.getId())) {
+            throw new NoSuitableUnitException("Фильм с указанным id не существуют!");
+        }
         checkFilmParams(film);
         return filmStorage.update(film);
     }
@@ -55,24 +57,20 @@ public class FilmService {
 
     public Film putLike(Long id, Long userId) {
         log.info("Фильму с id = {} ставит лайк пользователь с id = {}", id, userId);
-        if (!doFilmAndUserExist(id, userId)) {
+        if (!doesFilmExist(id) || !doesUserExist(userId)) {
             throw new NoSuitableUnitException("Фильм или пользователь с указанными id не существуют!");
         }
 
-        Film film = filmStorage.get(id);
-        film.addUserLike(userId);
-        return film;
+        return filmStorage.putLike(id, userId);
     }
 
     public Film deleteLike(Long id, Long userId) {
         log.info("Удаление лайка у фильма с id = {} от пользователя с id = {}", id, userId);
-        if (!doFilmAndUserExist(id, userId)) {
+        if (!doesFilmExist(id) || !doesUserExist(userId)) {
             throw new NoSuitableUnitException("Фильм или пользователь с указанными id не существуют!");
         }
 
-        Film film = filmStorage.get(id);
-        film.deleteUserLike(userId);
-        return film;
+        return filmStorage.deleteLike(id, userId);
     }
 
     public List<Film> getMostLikedFilms(Integer listSize) {
@@ -100,9 +98,15 @@ public class FilmService {
         }
     }
 
-    private boolean doFilmAndUserExist(Long filmId, Long userId) {
-        if (filmStorage.getValues().containsKey(filmId)
-                && userStorage.getValues().containsKey(userId)) {
+    private boolean doesUserExist(Long userId) {
+        if (userStorage.getValues().containsKey(userId)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean doesFilmExist(Long filmId) {
+        if (filmStorage.getValues().containsKey(filmId)) {
             return true;
         }
         return false;

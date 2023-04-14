@@ -27,6 +27,10 @@ public class UserService {
 
     public User update(User user) {
         checkUserParams(user);
+        if (!doUsersExist(user.getId())) {
+            throw new NoSuitableUnitException(
+                    "Пользователь с введенным id отсутствует в списке пользователей.");
+        }
         return userStorage.update(user);
     }
 
@@ -45,11 +49,7 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = getUsers().get(id);
-        User friendOfUser = getUsers().get(friendId);
-        user.addFriend(friendId);
-        friendOfUser.addFriend(id);
-        return user.getFriendsIds();
+        return userStorage.addFriend(id, friendId);
     }
 
     public Set<Long> deleteFriend(Long id, Long friendId) {
@@ -59,11 +59,7 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = getUsers().get(id);
-        User friendOfUser = getUsers().get(friendId);
-        user.deleteFriend(friendId);
-        friendOfUser.deleteFriend(id);
-        return user.getFriendsIds();
+        return userStorage.deleteFriend(id, friendId);
     }
 
     public List<User> getFriends(Long id) {

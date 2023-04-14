@@ -179,6 +179,36 @@ public class FilmDbStorage implements FilmStorage {
         return filmMap;
     }
 
+    @Override
+    public Film putLike(Long id, Long userId) {
+        String queryUserLikesSelect = "SELECT * FROM user_likes WHERE film_id = ?;";
+
+        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect, (rs, rowNum) -> mapRowToId(rs, "user_id"), id);
+        if (!filmLikes.contains(userId)) {
+            String queryUserLikesInsert = "INSERT INTO user_likes (film_id, user_id) VALUES (?, ?);";
+
+            jdbcTemplate.update(queryUserLikesInsert, id, userId);
+        }
+
+        Film film = get(id);
+        return film;
+    }
+
+    @Override
+    public Film deleteLike(Long id, Long userId) {
+        String queryUserLikesSelect = "SELECT * FROM user_likes WHERE film_id = ?;";
+
+        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect, (rs, rowNum) -> mapRowToId(rs, "user_id"), id);
+        if (filmLikes.contains(userId)) {
+            String queryUserLikesDelete = "DELETE FROM user_likes WHERE user_id = ?";
+
+            jdbcTemplate.update(queryUserLikesDelete, userId);
+        }
+
+        Film film = get(id);
+        return film;
+    }
+
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Long id = rs.getLong("film_id");
         String name = rs.getString("name");

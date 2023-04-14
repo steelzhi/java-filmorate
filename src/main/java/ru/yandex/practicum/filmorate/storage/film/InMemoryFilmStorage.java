@@ -60,4 +60,17 @@ public class InMemoryFilmStorage implements FilmStorage {
         Map<Long, Film> copyOfFilms = new HashMap<>(films);
         return copyOfFilms;
     }
+
+    public Film putLike(Long id, Long userId) {
+        Film film = films.get(id);
+        film.addUserLike(userId);
+        return film;
+    }
+
+    public Film deleteLike(Long id, Long userId) {
+        Film film = films.get(id);
+        film.deleteUserLike(userId);
+        return film;
+    }
+
 }
