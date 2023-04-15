@@ -99,7 +99,7 @@ public class UserService {
     private void checkUserParams(User user) {
         if (user.getLogin().contains(" ")) {
             log.info("Попытка добавить пользователя с пробелом в логине.");
-            throw new ValidationException("Введены некорректный логин пользователя!");
+            throw new ValidationException("Введен некорректный логин пользователя!");
         }
     }
 
