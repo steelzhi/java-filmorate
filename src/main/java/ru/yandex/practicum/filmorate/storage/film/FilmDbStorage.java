@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -54,6 +53,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration());
 
         film.setId(filmId);
+        updateGenres(film);
 
         return film;
     }
@@ -79,40 +79,45 @@ public class FilmDbStorage implements FilmStorage {
 
             String queryFilmsGenresDelete = "DELETE FROM film_genres WHERE film_id = ?;";
             jdbcTemplate.update(queryFilmsGenresDelete, film.getId());
-            String queryFilmsGenresInsert = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            if (film.getGenres() != null) {
-                Set<Integer> genresIdsSet = new TreeSet<>();
-                for (Genres genres : film.getGenres()) {
-                    genresIdsSet.add(genres.getId());
-                }
-
-                List<Genres> genres = new ArrayList<>();
-                for (Genres g : film.getGenres()) {
-                    for (Integer genreId : genresIdsSet) {
-                        if (g.getId() == genreId) {
-                            genres.add(g);
-                            break;
-                        }
-                    }
-                }
-
-                Collections.sort(genres, (o1, o2) -> {
-                    if (o1.getId() <= o2.getId()) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
-
-                for (Genres genre : genres) {
-                    jdbcTemplate.update(queryFilmsGenresInsert, film.getId(), genre.getId());
-                }
-                film.setGenres(genres);
-            }
+            updateGenres(film);
             return film;
 
         } catch (RuntimeException e) {
             throw new NoSuitableUnitException("Фильма с таким id нет в БД");
+        }
+    }
+
+    private void updateGenres(Film film) {
+        if (film.getGenres() != null) {
+            Set<Integer> genresIdsSet = new TreeSet<>();
+            for (Genres genres : film.getGenres()) {
+                genresIdsSet.add(genres.getId());
+            }
+
+            Set<Genres> genresSet = new HashSet<>();
+            List<Genres> genres = new ArrayList<>();
+            for (Genres g : film.getGenres()) {
+                for (Integer genreId : genresIdsSet) {
+                    if (g.getId() == genreId) {
+                        genresSet.add(g);
+                    }
+                }
+            }
+            genres.addAll(genresSet);
+
+            Collections.sort(genres, (o1, o2) -> {
+                if (o1.getId() <= o2.getId()) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
+
+            String queryFilmsGenresInsert = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+            for (Genres genre : genres) {
+                jdbcTemplate.update(queryFilmsGenresInsert, film.getId(), genre.getId());
+            }
+            film.setGenres(genres);
         }
     }
 
@@ -125,39 +130,49 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN genres AS g ON fg.genre_id = g.genre_id " +
                 "LEFT JOIN mpa AS m ON f.mpa_id=m.mpa_id;";
 
-        List<Film> filmsWithoutGenreMpaLikes = jdbcTemplate.query(queryFilmsSelect, (rs, rowNum) -> mapRowToFilm(rs));
+        List<Film> filmsWithoutGenreLikes = jdbcTemplate.query(queryFilmsSelect, (rs, rowNum) -> mapRowToFilm(rs));
 
-        if (filmsWithoutGenreMpaLikes.isEmpty()) {
+        if (filmsWithoutGenreLikes.isEmpty()) {
             return new ArrayList<>();
         }
 
-        Long currentFilmId = filmsWithoutGenreMpaLikes.get(0).getId();
-        List<Genres> genresOfCurrentFilm = new ArrayList<>();
-        List<Film> filmsWithoutLikes = new ArrayList<>();
-        Film lastFilmInFilmsWithoutGenreMpaLikesList = null;
-
-        for (Film film : filmsWithoutGenreMpaLikes) {
-            if (film.getId() == currentFilmId) {
-                if (film.getGenres() != null) {
-                    genresOfCurrentFilm.addAll(film.getGenres());
-                }
-                lastFilmInFilmsWithoutGenreMpaLikesList = film;
-            } else {
-                filmsWithoutLikes.add(film);
-                film.setGenres(genresOfCurrentFilm);
-                genresOfCurrentFilm.clear();
-                currentFilmId = film.getId();
-            }
-        }
-        filmsWithoutLikes.add(lastFilmInFilmsWithoutGenreMpaLikesList);
-        lastFilmInFilmsWithoutGenreMpaLikesList.setGenres(genresOfCurrentFilm);
-
+        List<Film> filmsWithoutLikes = getFilmsWithGenres(filmsWithoutGenreLikes);
         List<Film> filmsWithLikes = new ArrayList<>();
         for (Film f : filmsWithoutLikes) {
             filmsWithLikes.add(getFilmWithAllFieldsFilled(f));
         }
 
+        Collections.sort(filmsWithLikes, (o1, o2) -> (int) (o1.getId() - o2.getId()));
+
         return filmsWithLikes;
+    }
+
+    private List<Film> getFilmsWithGenres(List<Film> filmsWithoutGenres) {
+        Map<Long, Set<Long>> genresOfFilms = new HashMap<>();
+        for (Film film : filmsWithoutGenres) {
+            genresOfFilms.put(film.getId(), new HashSet<>());
+        }
+        for (Film film : filmsWithoutGenres) {
+            Set<Long> currentGenresIds = genresOfFilms.get(film.getId());
+            if (film.getGenres() != null) {
+                currentGenresIds.add((long) getGenresId(film.getGenres()));
+                genresOfFilms.put(film.getId(), currentGenresIds);
+            }
+        }
+
+        String queryGenresSelect = "SELECT * FROM genres;";
+        List<Genres> allGenres = jdbcTemplate.query(queryGenresSelect, (rs, rowNum) -> mapRowToGenres(rs));
+
+        List<Film> filmsWithGenres = new ArrayList<>();
+        Long currentFilmId = null;
+        for (Film film : filmsWithoutGenres) {
+            if (film.getId() != currentFilmId) {
+                filmsWithGenres.add(getFilmWithGenres(film, genresOfFilms.get(film.getId()), allGenres));
+                currentFilmId = film.getId();
+            }
+        }
+
+        return filmsWithGenres;
     }
 
     @Override
@@ -311,4 +326,28 @@ public class FilmDbStorage implements FilmStorage {
         return rs.getInt(column);
     }
 
+    private Genres mapRowToGenres(ResultSet rs) throws SQLException {
+        return new Genres(rs.getInt("genre_id"), rs.getString("genre"));
+    }
+
+    private int getGenresId(List<Genres> genres) {
+        return genres.get(0).getId();
+    }
+
+    private Film getFilmWithGenres(Film film, Set<Long> genreIds, List<Genres> allGenres) {
+        List<Genres> genresOfCurrentFilm = new ArrayList<>();
+
+        if (film.getGenres() != null) {
+            for (Long genreId : genreIds) {
+                for (Genres genres : allGenres) {
+                    if (genres.getId() == genreId) {
+                        genresOfCurrentFilm.add(genres);
+                    }
+                }
+            }
+        }
+        film.setGenres(genresOfCurrentFilm);
+
+        return film;
+    }
 }
