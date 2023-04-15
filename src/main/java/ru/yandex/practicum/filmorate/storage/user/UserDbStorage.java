@@ -34,7 +34,8 @@ public class UserDbStorage implements UserStorage {
                     user.getBirthday());
 
             String queryUsersSelect = "SELECT user_id FROM users WHERE email = ?;";
-            Long userId = jdbcTemplate.queryForObject(queryUsersSelect, (rs, rowNum) -> mapRowToId(rs, "user_id"), user.getEmail());
+            Long userId = jdbcTemplate.queryForObject(queryUsersSelect,
+                    (rs, rowNum) -> mapRowToId(rs, "user_id"), user.getEmail());
             user.setId(userId);
 
             return user;
@@ -49,10 +50,12 @@ public class UserDbStorage implements UserStorage {
         String queryUsersUpdate = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?;";
 
         try {
-            jdbcTemplate.update(queryUsersUpdate, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+            jdbcTemplate.update(queryUsersUpdate, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(),
+                    user.getId());
             return user;
         } catch (RuntimeException e) {
-            throw new ValidationException("Невозможно поменять email на " + user.getEmail() + " - пользователь с таким email уже существует.");
+            throw new ValidationException("Невозможно поменять email на " + user.getEmail() +
+                    " - пользователь с таким email уже существует.");
         }
     }
 
@@ -61,10 +64,10 @@ public class UserDbStorage implements UserStorage {
         log.info("Чтение всех пользователей из БД.");
         String sql = "SELECT * FROM users;";
 
-        List<User> rawUsers = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs));
+        List<User> usersWithoutFriendsAndLikes = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs));
         List<User> users = new ArrayList<>();
-        for (User user : rawUsers) {
-            users.add(getUserWithAllFieldsFilled(user));
+        for (User user : usersWithoutFriendsAndLikes) {
+            users.add(getUserWithFriendsAndLikes(user));
         }
 
         return users;
@@ -75,8 +78,8 @@ public class UserDbStorage implements UserStorage {
         log.info("Чтение пользователя с id = " + id + " из БД.");
         String sql = "SELECT * FROM users WHERE user_id = ?;";
         try {
-            User rawUser = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToUser(rs), id);
-            return getUserWithAllFieldsFilled(rawUser);
+            User userWithoutFriendsAndLikes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToUser(rs), id);
+            return getUserWithFriendsAndLikes(userWithoutFriendsAndLikes);
         } catch (Exception e) {
             throw new NoSuitableUnitException("В БД отсутствует запрошенный пользователь");
         }
@@ -88,8 +91,8 @@ public class UserDbStorage implements UserStorage {
         List<Long> friendsOfSecond = jdbcTemplate.query(queryFriendShipSelect,
                 (rs, rowNum) -> mapRowToId(rs, "friend_one_id"), friendId);
         if (friendsOfSecond.contains(id)) {
-            String queryFriendShipUpdate = "UPDATE friendship SET friendship_status = true WHERE friend_two_id = ? AND " +
-                    "friend_one_id = ?;";
+            String queryFriendShipUpdate = "UPDATE friendship SET friendship_status = true WHERE friend_two_id = ? " +
+                    "AND friend_one_id = ?;";
             jdbcTemplate.update(queryFriendShipUpdate, friendId, id);
         } else {
             String queryFriendShipInsert = "INSERT INTO friendship (friend_one_id, friend_two_id, friendship_status) " +
@@ -150,10 +153,10 @@ public class UserDbStorage implements UserStorage {
                 new HashSet<>(),
                 new HashSet<>());
 
-        return getUserWithAllFieldsFilled(user);
+        return getUserWithFriendsAndLikes(user);
     }
 
-    private User getUserWithAllFieldsFilled(User user) {
+    private User getUserWithFriendsAndLikes(User user) {
         Long userId = user.getId();
         Set<Long> allFriendIds = getAllFriendIds(userId);
 
@@ -183,7 +186,8 @@ public class UserDbStorage implements UserStorage {
 
     private Set<Long> getAllFriendIds(Long userId) {
         String firstQueryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ?;";
-        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ? AND friendship_status = true;";
+        String secondQueryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ? " +
+                "AND friendship_status = true;";
 
         List<Long> firstListOfFriends = jdbcTemplate.query(firstQueryFriendShipSelect,
                 (rs, rowNum) -> mapRowToId(rs, "friend_two_id"), userId);
@@ -195,5 +199,19 @@ public class UserDbStorage implements UserStorage {
         allFriends.addAll(secondListOfFriends);
 
         return allFriends;
+    }
+
+    /**
+     * Метод, необходимый для проведения тестов
+     */
+    public void deleteAllUsers() {
+        String queryFriendshipDelete = "DELETE FROM friendship;";
+        jdbcTemplate.update(queryFriendshipDelete);
+
+        String queryUserLikesDelete = "DELETE FROM user_likes;";
+        jdbcTemplate.update(queryUserLikesDelete);
+
+        String queryUsersDelete = "DELETE FROM users;";
+        jdbcTemplate.update(queryUsersDelete);
     }
 }
