@@ -1,11 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.mpa;
 
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
-import java.util.List;
-
-public interface MpaStorage {
-    List<Mpa> get();
-
-    Mpa get(Long id);
+public interface MpaStorage extends Storage<Mpa> {
 }

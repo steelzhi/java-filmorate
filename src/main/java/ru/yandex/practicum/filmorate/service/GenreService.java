@@ -14,6 +14,14 @@ public class GenreService {
         this.genreStorage = genreStorage;
     }
 
+    public Genres create(Genres genres) {
+        return genreStorage.create(genres);
+    }
+
+    public Genres update(Genres genres) {
+        return genreStorage.update(genres);
+    }
+
     public List<Genres> get() {
         return genreStorage.get();
     }

@@ -1,6 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Genres;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
@@ -8,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/genres")
-public class GenreController extends CrudController<Genres>{
+public class GenreController extends CrudController<Genres> {
     private final GenreService genreService;
 
     public GenreController(GenreService genreService) {
@@ -16,13 +19,13 @@ public class GenreController extends CrudController<Genres>{
     }
 
     @Override
-    public Genres create(Genres value) {
-        return null;
+    public Genres create(Genres genres) {
+        return genreService.create(genres);
     }
 
     @Override
-    public Genres update(Genres value) {
-        return null;
+    public Genres update(Genres genres) {
+        return genreService.update(genres);
     }
 
     @GetMapping

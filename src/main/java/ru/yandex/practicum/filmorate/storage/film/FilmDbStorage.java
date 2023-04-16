@@ -62,7 +62,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film update(Film film) {
         checkRating(film);
-        if (!isGenreCorrect(film)) {
+        if (!areGenresCorrect(film)) {
             throw new ValidationException("Неверно введен жанр фильма");
         }
         log.info("Изменение в БД фильма с id = {}.", film.getId());
@@ -97,16 +97,16 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN genres AS g ON fg.genre_id = g.genre_id " +
                 "LEFT JOIN mpa AS m ON f.mpa_id=m.mpa_id;";
 
-        List<Film> filmsWithoutGenreLikes = jdbcTemplate.query(queryFilmsSelect, (rs, rowNum) -> mapRowToFilm(rs));
+        List<Film> filmsWithoutGenresLikes = jdbcTemplate.query(queryFilmsSelect, (rs, rowNum) -> mapRowToFilm(rs));
 
-        if (filmsWithoutGenreLikes.isEmpty()) {
+        if (filmsWithoutGenresLikes.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<Film> filmsWithoutLikes = getFilmsWithGenres(filmsWithoutGenreLikes);
+        List<Film> filmsWithoutLikes = getFilmsWithGenres(filmsWithoutGenresLikes);
         List<Film> filmsWithLikes = new ArrayList<>();
-        for (Film f : filmsWithoutLikes) {
-            filmsWithLikes.add(getFilmWithLikes(f));
+        for (Film film : filmsWithoutLikes) {
+            filmsWithLikes.add(getFilmWithLikes(film));
         }
 
         Collections.sort(filmsWithLikes, (o1, o2) -> (int) (o1.getId() - o2.getId()));
@@ -203,7 +203,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private boolean isGenreCorrect(Film film) {
+    private boolean areGenresCorrect(Film film) {
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             String sqlGenre = "SELECT genre_id " +
                     "FROM genres;";
@@ -329,10 +329,10 @@ public class FilmDbStorage implements FilmStorage {
 
             Set<Genres> genresSet = new HashSet<>();
             List<Genres> genres = new ArrayList<>();
-            for (Genres g : film.getGenres()) {
+            for (Genres genre : film.getGenres()) {
                 for (Integer genreId : genresIdsSet) {
-                    if (g.getId() == genreId) {
-                        genresSet.add(g);
+                    if (genre.getId() == genreId) {
+                        genresSet.add(genre);
                     }
                 }
             }

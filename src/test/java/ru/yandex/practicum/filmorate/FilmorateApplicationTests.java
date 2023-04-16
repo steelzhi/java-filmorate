@@ -112,7 +112,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void userUpdateUserWithInorrectLogin() {
+    void userUpdateUserWithIncorrectLogin() {
         deleteAllUsersData();
         User user1 = new User(null, "ivanov@ya.ru", "Iv5", "Ivan",
                 LocalDate.of(2000, 01, 01), new HashSet<>(), new HashSet<>());
@@ -125,6 +125,26 @@ class FilmorateApplicationTests {
 
         assertEquals("Введен некорректный логин пользователя!", validationException.getMessage(),
                 "В список добавлен пользователь с некорректным логином");
+    }
+
+    @Test
+    void userUpdateUserWithEmailBelongsToAnotherUser() {
+        deleteAllUsersData();
+        User user1 = new User(null, "ivanov@ya.ru", "Iv5", "Ivan",
+                LocalDate.of(2000, 01, 01), new HashSet<>(), new HashSet<>());
+        userService.create(user1);
+        User user2 = new User(user1.getId(), "ivanov2@ya.ru", "Ivan", "Ivan",
+                LocalDate.of(2010, 01, 01), new HashSet<>(), new HashSet<>());
+        userService.create(user2);
+        User updatedUser1 = new User(user1.getId(), "ivanov2@ya.ru", "Vanya", "Ivan",
+                LocalDate.of(2000, 01, 01), new HashSet<>(), new HashSet<>());
+
+        ValidationException validationException = assertThrows(ValidationException.class,
+                () -> userService.update(updatedUser1));
+
+        assertEquals("Невозможно поменять email на " + updatedUser1.getEmail() +
+                        " - пользователь с таким email уже существует.", validationException.getMessage(),
+                "В список добавлен пользователь с email-ом, принадлежащим другому пользователю");
     }
 
     @Test
@@ -403,7 +423,7 @@ class FilmorateApplicationTests {
         assertTrue(filmStorage.get(film.getId()).getMpa().getName().equals("PG-13"),
                 "Рейтинг добавленного фильма не соответствует рейтингу в БД!");
         assertTrue(filmStorage.get(film.getId()).getReleaseDate().equals(
-                LocalDate.of(2000, 01, 01)),
+                        LocalDate.of(2000, 01, 01)),
                 "Дата добавленного фильма не соответствует дате в БД!");
         assertTrue(filmStorage.get(film.getId()).getDuration() == 100,
                 "Длительность добавленного фильма не соответствует длительности в БД!");
@@ -501,7 +521,8 @@ class FilmorateApplicationTests {
 
         System.out.println("Популярные фильмы: " + filmService.getMostLikedFilms(3));
         assertTrue(filmService.getMostLikedFilms(3).size() == 2,
-                "Размер списка наиболее популярных фильмов не превышает установленный лимит либо содержит не все популярные фильмы");
+                "Размер списка наиболее популярных фильмов не превышает установленный лимит либо содержит " +
+                        "не все популярные фильмы");
         assertTrue(filmService.getMostLikedFilms(3).contains(filmService.get(film1.getId())),
                 "Список популярных фильмов не содержит популярного фильма " + film1);
         assertTrue(filmService.getMostLikedFilms(3).contains(filmService.get(film3.getId())),
@@ -514,7 +535,8 @@ class FilmorateApplicationTests {
     void getAllGenres() {
         List<Genres> allGenres = genreStorage.get();
         assertTrue(allGenres.size() == 6,
-                "Размер заданного списка жанров не соответствует размеру, получаемому при помощи метода get()!");
+                "Размер заданного списка жанров не соответствует размеру, " +
+                        "получаемому при помощи метода get()!");
     }
 
     @Test
@@ -522,6 +544,28 @@ class FilmorateApplicationTests {
         Genres comedy = genreStorage.get(1L);
         assertTrue(comedy.getName().equals("Комедия"),
                 "Полученный из БД жанр не соответствует реальному жанру!");
+    }
+
+    @Test
+    void createNewGenre() {
+        int currentGenresCount = genreStorage.get().size();
+        Genres genres = new Genres(7, "Трагедия");
+        genreStorage.create(genres);
+        assertEquals(genreStorage.get().size(), currentGenresCount + 1,
+                "После добавления нового жанра количество жанров в БД не совпадает с их реальным количеством");
+        assertEquals(genreStorage.get((long) genreStorage.get().size()), genres,
+                "Новый жанр неправильно добавлен в БД");
+        genreStorage.deleteLastGenres();
+    }
+
+    @Test
+    void updateGenre() {
+        Genres genres = new Genres(1, "Трагедикомедия");
+        genreStorage.update(genres);
+        assertEquals(genreStorage.get(1L), genres, "В БД неверно изменен жанр!");
+
+        Genres genres2 = new Genres(1, "Комедия");
+        genreStorage.update(genres2);
     }
 
 
@@ -538,5 +582,28 @@ class FilmorateApplicationTests {
         Mpa pG = mpaStorage.get(2L);
         assertTrue(pG.getName().equals("PG"),
                 "Полученный из БД рейтинг не соответствует реальному рейтингу!");
+    }
+
+    @Test
+    void createNewMpa() {
+        int currentMpaCount = mpaStorage.get().size();
+        Mpa mpa = new Mpa(6, "A-16");
+        mpaStorage.create(mpa);
+        assertEquals(mpaStorage.get().size(), currentMpaCount + 1,
+                "После добавления нового рейтинга количество рейтингов в БД не совпадает с их реальным " +
+                        "количеством");
+        assertEquals(mpaStorage.get((long) mpaStorage.get().size()), mpa,
+                "Новый рейтинг неправильно добавлен в БД");
+        mpaStorage.deleteLastMpa();
+    }
+
+    @Test
+    void updateMpa() {
+        Mpa mpa = new Mpa(1, "A-16");
+        mpaStorage.update(mpa);
+        assertEquals(mpaStorage.get(1L), mpa, "В БД неверно изменен рейтинг!");
+
+        Mpa mpa2 = new Mpa(1, "G");
+        mpaStorage.update(mpa2);
     }
 }

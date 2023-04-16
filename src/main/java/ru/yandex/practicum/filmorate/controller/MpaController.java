@@ -11,11 +11,21 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/mpa")
-public class MpaController {
+public class MpaController extends CrudController<Mpa> {
     private final MpaService mpaService;
 
     public MpaController(MpaService mpaService) {
         this.mpaService = mpaService;
+    }
+
+    @Override
+    public Mpa create(Mpa mpa) {
+        return mpaService.create(mpa);
+    }
+
+    @Override
+    public Mpa update(Mpa mpa) {
+        return mpaService.update(mpa);
     }
 
     @GetMapping
@@ -24,7 +34,7 @@ public class MpaController {
     }
 
     @GetMapping("/{id}")
-    public Mpa get(@PathVariable Long id){
+    public Mpa get(@PathVariable Long id) {
         return mpaService.get(id);
     }
 }

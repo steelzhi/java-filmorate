@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class NotUniqueEntityException extends RuntimeException{
+public class NotUniqueEntityException extends RuntimeException {
     public NotUniqueEntityException(String message) {
         super(message);
     }

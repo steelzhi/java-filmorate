@@ -54,7 +54,7 @@ class FilmControllerTest {
 
     @Test
     void addFilmWithEmptyName() {
-        Film film = new Film(null, "", "AAA",null, null,
+        Film film = new Film(null, "", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         boolean areFilmParamsValid = areFilmParamsValid(film);
         assertTrue(areFilmParamsValid == false, "Введены недопустимое имя фильма.");
@@ -66,7 +66,7 @@ class FilmControllerTest {
         for (int i = 0; i < 201; i++) {
             builder.append("A");
         }
-        Film film = new Film(null, "Scary Movie", builder.toString(),null, null,
+        Film film = new Film(null, "Scary Movie", builder.toString(), null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         ValidationException validationException = assertThrows(ValidationException.class,
                 () -> filmController.create(film));
@@ -76,7 +76,7 @@ class FilmControllerTest {
 
     @Test
     void addFilmWithTooEarlyReleaseDate() {
-        Film film = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(1895, 12, 27), 100, new HashSet<>());
         ValidationException validationException = assertThrows(ValidationException.class,
                 () -> filmController.create(film));
@@ -86,7 +86,7 @@ class FilmControllerTest {
 
     @Test
     void addFilmWithNonPositiveDuration() {
-        Film film = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 0, new HashSet<>());
         boolean areFilmParamsValid = areFilmParamsValid(film);
         assertTrue(areFilmParamsValid == false, "Введена длительность фильма <= 0.");
@@ -103,11 +103,11 @@ class FilmControllerTest {
 
     @Test
     void updateFilm() {
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
         long film1Id = film1.getId();
-        Film film2 = new Film(null, "Scary Movie 2", "BBB",null, null,
+        Film film2 = new Film(null, "Scary Movie 2", "BBB", null, null,
                 LocalDate.of(2004, 06, 01), 112, new HashSet<>());
         film2.setId(film1Id);
         filmController.update(film2);
@@ -121,10 +121,10 @@ class FilmControllerTest {
 
     @Test
     void getFilms() {
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
-        Film film2 = new Film(3L, "Scary Movie 2", "BBB",null, null,
+        Film film2 = new Film(3L, "Scary Movie 2", "BBB", null, null,
                 LocalDate.of(2004, 06, 01), 112, new HashSet<>());
         filmController.create(film2);
 
@@ -137,10 +137,10 @@ class FilmControllerTest {
 
     @Test
     void getFilm() {
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
-        Film film2 = new Film(3L, "Scary Movie 2", "BBB",null, null,
+        Film film2 = new Film(3L, "Scary Movie 2", "BBB", null, null,
                 LocalDate.of(2004, 06, 01), 112, new HashSet<>());
         filmController.create(film2);
 
@@ -154,7 +154,7 @@ class FilmControllerTest {
         userController = new UserController(new UserService(userStorage));
         filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), userStorage));
 
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
         User user = userController.create(new User(null, "test@ya.ru", "Vasya54", "Vasily",
@@ -180,7 +180,7 @@ class FilmControllerTest {
         userController = new UserController(new UserService(userStorage));
         filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), userStorage));
 
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
         User user1 = userController.create(new User(null, "test@ya.ru", "Vasya54", "Vasily",
@@ -209,13 +209,13 @@ class FilmControllerTest {
         userController = new UserController(new UserService(userStorage));
         filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), userStorage));
 
-        Film film1 = new Film(null, "Scary Movie", "AAA",null, null,
+        Film film1 = new Film(null, "Scary Movie", "AAA", null, null,
                 LocalDate.of(2001, 02, 03), 100, new HashSet<>());
         filmController.create(film1);
-        Film film2 = new Film(3L, "Scary Movie 2", "BBB",null, null,
+        Film film2 = new Film(3L, "Scary Movie 2", "BBB", null, null,
                 LocalDate.of(2004, 06, 01), 112, new HashSet<>());
         filmController.create(film2);
-        Film film3 = new Film(47L, "Scary Movie 3", "CCC",null, null,
+        Film film3 = new Film(47L, "Scary Movie 3", "CCC", null, null,
                 LocalDate.of(2014, 03, 21), 80, new HashSet<>());
         filmController.create(film3);
 
