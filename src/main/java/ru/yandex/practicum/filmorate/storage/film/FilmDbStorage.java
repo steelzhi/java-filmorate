@@ -45,7 +45,8 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM films " +
                 "WHERE name = ? AND description = ? AND mpa_id = ? AND release_date = ? AND duration = ?;";
 
-        Long filmId = jdbcTemplate.queryForObject(queryFilmsSelect, (rs, rowNum) -> mapRowToIdLong(rs, "film_id"),
+        Long filmId = jdbcTemplate.queryForObject(queryFilmsSelect,
+                (rs, rowNum) -> mapRowToIdLong(rs, "film_id"),
                 film.getName(),
                 film.getDescription(),
                 film.getMpa().getId(),
@@ -163,7 +164,8 @@ public class FilmDbStorage implements FilmStorage {
     public Film putLike(Long id, Long userId) {
         String queryUserLikesSelect = "SELECT * FROM user_likes WHERE film_id = ?;";
 
-        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect, (rs, rowNum) -> mapRowToIdLong(rs, "user_id"), id);
+        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect,
+                (rs, rowNum) -> mapRowToIdLong(rs, "user_id"), id);
         if (!filmLikes.contains(userId)) {
             String queryUserLikesInsert = "INSERT INTO user_likes (film_id, user_id) VALUES (?, ?);";
 
@@ -178,7 +180,8 @@ public class FilmDbStorage implements FilmStorage {
     public Film deleteLike(Long id, Long userId) {
         String queryUserLikesSelect = "SELECT * FROM user_likes WHERE film_id = ?;";
 
-        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect, (rs, rowNum) -> mapRowToIdLong(rs, "user_id"), id);
+        List<Long> filmLikes = jdbcTemplate.query(queryUserLikesSelect,
+                (rs, rowNum) -> mapRowToIdLong(rs, "user_id"), id);
         if (filmLikes.contains(userId)) {
             String queryUserLikesDelete = "DELETE FROM user_likes WHERE user_id = ?";
 
@@ -343,11 +346,26 @@ public class FilmDbStorage implements FilmStorage {
                 }
             });
 
-            String queryFilmsGenresInsert = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+            String queryFilmsGenresInsert = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);";
             for (Genres genre : genres) {
                 jdbcTemplate.update(queryFilmsGenresInsert, film.getId(), genre.getId());
             }
             film.setGenres(genres);
         }
+    }
+
+    /**
+     * Метод, необходимый для проведения тестов
+     */
+
+    public void deleteAllFilms() {
+        String queryFilmGenresDelete = "DELETE FROM film_genres;";
+        jdbcTemplate.update(queryFilmGenresDelete);
+
+        String queryUserLikesDelete = "DELETE FROM user_likes;";
+        jdbcTemplate.update(queryUserLikesDelete);
+
+        String queryFilmsDelete = "DELETE FROM films;";
+        jdbcTemplate.update(queryFilmsDelete);
     }
 }

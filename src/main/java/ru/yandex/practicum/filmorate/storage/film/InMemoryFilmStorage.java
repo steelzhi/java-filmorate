@@ -72,5 +72,4 @@ public class InMemoryFilmStorage implements FilmStorage {
         film.deleteUserLike(userId);
         return film;
     }
-
 }
