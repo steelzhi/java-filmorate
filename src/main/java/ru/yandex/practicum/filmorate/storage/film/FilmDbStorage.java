@@ -228,7 +228,7 @@ public class FilmDbStorage implements FilmStorage {
         String description = rs.getString("description");
 
         List<Genres> genresList = null;
-        Mpa mpa = null;
+        Mpa mpa;
 
         try {
             Integer genreId = rs.getInt("genre_id");
@@ -237,11 +237,16 @@ public class FilmDbStorage implements FilmStorage {
                 Genres genre = new Genres(genreId, genreName);
                 genresList = List.of(genre);
             }
+        } catch (JdbcSQLSyntaxErrorException e) {
+            genresList = null;
+        }
 
+        try {
             Integer mpaId = rs.getInt("mpa_id");
             String mpaName = rs.getString("mpa");
             mpa = new Mpa(mpaId, mpaName);
         } catch (JdbcSQLSyntaxErrorException e) {
+            mpa = null;
         }
 
         LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
