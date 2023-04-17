@@ -28,11 +28,13 @@ public class MpaController extends CrudController<Mpa> {
         return mpaService.update(mpa);
     }
 
+    @Override
     @GetMapping
     public List<Mpa> get() {
         return mpaService.get();
     }
 
+    @Override
     @GetMapping("/{id}")
     public Mpa get(@PathVariable Long id) {
         return mpaService.get(id);

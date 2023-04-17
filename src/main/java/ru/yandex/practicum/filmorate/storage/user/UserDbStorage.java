@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -85,6 +86,7 @@ public class UserDbStorage implements UserStorage {
         }
     }
 
+    @Override
     public Set<Long> addFriend(Long id, Long friendId) {
         String queryFriendShipSelect = "SELECT friend_one_id FROM friendship WHERE friend_two_id = ?;";
 
@@ -105,6 +107,7 @@ public class UserDbStorage implements UserStorage {
         return allFriendIds;
     }
 
+    @Override
     public Set<Long> deleteFriend(Long id, Long friendId) {
         String queryFriendShipSelect = "SELECT friend_two_id FROM friendship WHERE friend_one_id = ?;";
 
@@ -199,6 +202,21 @@ public class UserDbStorage implements UserStorage {
         allFriends.addAll(secondListOfFriends);
 
         return allFriends;
+    }
+
+    @Override
+    public boolean doUsersExist(Long... receivedUsersIds) {
+        for (Long id : receivedUsersIds) {
+            String queryUsersSelect = "SELECT * FROM users WHERE user_id = ?;";
+
+            try {
+                jdbcTemplate.queryForObject(queryUsersSelect, (rs, rowNum) -> mapRowToUser(rs), id);
+            } catch (EmptyResultDataAccessException e) {
+                return false;
+            }
+
+        }
+        return true;
     }
 
     /**

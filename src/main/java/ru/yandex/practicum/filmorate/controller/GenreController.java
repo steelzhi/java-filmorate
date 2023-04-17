@@ -28,11 +28,13 @@ public class GenreController extends CrudController<Genres> {
         return genreService.update(genres);
     }
 
+    @Override
     @GetMapping
-    public List get() {
+    public List<Genres> get() {
         return genreService.get();
     }
 
+    @Override
     @GetMapping("/{id}")
     public Genres get(@PathVariable Long id) {
         return genreService.get(id);

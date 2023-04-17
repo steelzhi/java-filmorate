@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -54,7 +56,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration());
 
         film.setId(filmId);
-        updateGenres(film);
+        updateGenresAndLeaveOnlyUnique(film);
 
         return film;
     }
@@ -80,7 +82,7 @@ public class FilmDbStorage implements FilmStorage {
 
             String queryFilmsGenresDelete = "DELETE FROM film_genres WHERE film_id = ?;";
             jdbcTemplate.update(queryFilmsGenresDelete, film.getId());
-            updateGenres(film);
+            updateGenresAndLeaveOnlyUnique(film);
             return film;
 
         } catch (RuntimeException e) {
@@ -225,17 +227,22 @@ public class FilmDbStorage implements FilmStorage {
         String name = rs.getString("name");
         String description = rs.getString("description");
 
-        Integer genreId = rs.getInt("genre_id");
-        String genreName = rs.getString("genre");
         List<Genres> genresList = null;
-        if (genreName != null) {
-            Genres genre = new Genres(genreId, genreName);
-            genresList = List.of(genre);
-        }
+        Mpa mpa = null;
 
-        Integer mpaId = rs.getInt("mpa_id");
-        String mpaName = rs.getString("mpa");
-        Mpa mpa = new Mpa(mpaId, mpaName);
+        try {
+            Integer genreId = rs.getInt("genre_id");
+            String genreName = rs.getString("genre");
+            if (genreName != null) {
+                Genres genre = new Genres(genreId, genreName);
+                genresList = List.of(genre);
+            }
+
+            Integer mpaId = rs.getInt("mpa_id");
+            String mpaName = rs.getString("mpa");
+            mpa = new Mpa(mpaId, mpaName);
+        } catch (JdbcSQLSyntaxErrorException e) {
+        }
 
         LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
         Integer duration = rs.getInt("duration");
@@ -320,7 +327,7 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
-    private void updateGenres(Film film) {
+    private void updateGenresAndLeaveOnlyUnique(Film film) {
         if (film.getGenres() != null) {
             Set<Integer> genresIdsSet = new TreeSet<>();
             for (Genres genres : film.getGenres()) {
@@ -328,7 +335,6 @@ public class FilmDbStorage implements FilmStorage {
             }
 
             Set<Genres> genresSet = new HashSet<>();
-            List<Genres> genres = new ArrayList<>();
             for (Genres genre : film.getGenres()) {
                 for (Integer genreId : genresIdsSet) {
                     if (genre.getId() == genreId) {
@@ -336,7 +342,7 @@ public class FilmDbStorage implements FilmStorage {
                     }
                 }
             }
-            genres.addAll(genresSet);
+            List<Genres> genres = new ArrayList<>(genresSet);
 
             Collections.sort(genres, (o1, o2) -> {
                 if (o1.getId() <= o2.getId()) {
@@ -352,6 +358,20 @@ public class FilmDbStorage implements FilmStorage {
             }
             film.setGenres(genres);
         }
+    }
+
+    @Override
+    public boolean doesFilmExist(Long filmId) {
+        String queryFilmsSelect = "SELECT * " +
+                "FROM films " +
+                "WHERE film_id = ?;";
+        try {
+            jdbcTemplate.queryForObject(queryFilmsSelect, (rs, rowNum) -> mapRowToFilm(rs), filmId);
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

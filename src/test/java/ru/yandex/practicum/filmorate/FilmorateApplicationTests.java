@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Genres;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.MpaService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
@@ -35,6 +36,7 @@ class FilmorateApplicationTests {
     private final FilmService filmService;
     private final GenreDbStorage genreStorage;
     private final MpaDbStorage mpaStorage;
+    private final MpaService mpaService;
 
     public void deleteAllUsersData() {
         userStorage.deleteAllUsers();
@@ -582,6 +584,12 @@ class FilmorateApplicationTests {
         Mpa pG = mpaStorage.get(2L);
         assertTrue(pG.getName().equals("PG"),
                 "Полученный из БД рейтинг не соответствует реальному рейтингу!");
+
+        NoSuitableUnitException noSuitableUnitException = assertThrows(NoSuitableUnitException.class,
+                () -> mpaStorage.get(7L));
+
+        assertEquals("Рейтинг с указанным id не существует!", noSuitableUnitException.getMessage(),
+                "Рейтинга с таким id нет в БД");
     }
 
     @Test

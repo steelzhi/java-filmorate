@@ -103,12 +103,7 @@ public class UserService {
     }
 
     private boolean doUsersExist(Long... receivedUsersIds) {
-        for (Long id : receivedUsersIds) {
-            if (!getUsers().containsKey(id)) {
-                return false;
-            }
-        }
-        return true;
+        return userStorage.doUsersExist(receivedUsersIds);
     }
 
     private List<User> getUsersByIds(Set<Long> ids) {

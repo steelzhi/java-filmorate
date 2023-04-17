@@ -7,4 +7,6 @@ public interface FilmStorage extends Storage<Film> {
     Film putLike(Long id, Long userId);
 
     Film deleteLike(Long id, Long userId);
+
+    boolean doesFilmExist(Long filmId);
 }

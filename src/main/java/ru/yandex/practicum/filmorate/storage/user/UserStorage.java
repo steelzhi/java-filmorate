@@ -9,4 +9,6 @@ public interface UserStorage extends Storage<User> {
     Set<Long> addFriend(Long id, Long friendId);
 
     Set<Long> deleteFriend(Long id, Long friendId);
+
+    boolean doUsersExist(Long... receivedUsersIds);
 }

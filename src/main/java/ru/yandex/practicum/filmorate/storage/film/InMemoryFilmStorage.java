@@ -72,4 +72,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         film.deleteUserLike(userId);
         return film;
     }
+
+    @Override
+    public boolean doesFilmExist(Long filmId) {
+        if (films.containsKey(filmId)) {
+            return true;
+        }
+        return false;
+    }
 }

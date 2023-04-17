@@ -80,4 +80,13 @@ public class InMemoryUserStorage implements UserStorage {
         }
         return user;
     }
+
+    public boolean doUsersExist(Long... receivedUsersIds) {
+        for (Long id : receivedUsersIds) {
+            if (!users.containsKey(id)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

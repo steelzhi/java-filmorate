@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -87,6 +88,17 @@ public class GenreDbStorage implements GenreStorage {
         return new Genres(
                 rs.getInt("genre_id"),
                 rs.getString("genre"));
+    }
+
+    @Override
+    public void checkGenreExististing(Long genreId) {
+        String queryGenreSelect = "SELECT * FROM genres WHERE genre_id = ?;";
+
+        try {
+            jdbcTemplate.queryForObject(queryGenreSelect, (rs, rowNum) -> mapRowToGenre(rs), genreId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuitableUnitException("Жанр с указанным id не существует!");
+        }
     }
 
     /**

@@ -103,16 +103,10 @@ public class FilmService {
     }
 
     private boolean doesUserExist(Long userId) {
-        if (userStorage.getValues().containsKey(userId)) {
-            return true;
-        }
-        return false;
+        return userStorage.doUsersExist(userId);
     }
 
     private boolean doesFilmExist(Long filmId) {
-        if (filmStorage.getValues().containsKey(filmId)) {
-            return true;
-        }
-        return false;
+        return filmStorage.doesFilmExist(filmId);
     }
 }

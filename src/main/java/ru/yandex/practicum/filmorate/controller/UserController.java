@@ -20,21 +20,25 @@ public class UserController extends CrudController<User> {
         this.userService = userService;
     }
 
+    @Override
     @PostMapping
     public User create(@RequestBody @Valid User user) {
         return userService.create(user);
     }
 
+    @Override
     @PutMapping
     public User update(@RequestBody @Valid User user) {
         return userService.update(user);
     }
 
+    @Override
     @GetMapping
     public List<User> get() {
         return userService.get();
     }
 
+    @Override
     @GetMapping("/{id}")
     public User get(@PathVariable Long id) {
         return userService.get(id);

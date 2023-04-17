@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.mpa;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
@@ -59,6 +60,7 @@ public class MpaDbStorage implements MpaStorage {
     @Override
     public Mpa get(Long id) {
         log.info("Получение рейтинга с id = {} из БД.", id);
+        checkMpaExist(id);
         String queryMpaSelect = "SELECT * " +
                 "FROM mpa " +
                 "WHERE mpa_id = ?;";
@@ -81,6 +83,17 @@ public class MpaDbStorage implements MpaStorage {
             mpaMap.put((long) mpa.getId(), mpa);
         }
         return mpaMap;
+    }
+
+    @Override
+    public void checkMpaExist(Long mpaId) {
+        String queryMpaSelect = "SELECT * FROM mpa WHERE mpa_id = ?;";
+
+        try {
+            jdbcTemplate.queryForObject(queryMpaSelect, (rs, rowNum) -> mapRowToMpa(rs), mpaId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuitableUnitException("Рейтинг с указанным id не существует!");
+        }
     }
 
     /**
