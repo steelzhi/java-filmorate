@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -27,18 +28,25 @@ public class FilmService {
         return -1;
     };
 
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
 
     public Film create(Film film) {
-        checkFilmParams(film);
+        if (!areFilmParamsCorrect(film)) {
+            throw new ValidationException("Введены некорректные параметры фильма!");
+        }
+
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
-        checkFilmParams(film);
+        if (!doesFilmExist(film.getId())) {
+            throw new NoSuitableUnitException("Фильм с указанным id не существует!");
+        }
+        areFilmParamsCorrect(film);
         return filmStorage.update(film);
     }
 
@@ -52,24 +60,20 @@ public class FilmService {
 
     public Film putLike(Long id, Long userId) {
         log.info("Фильму с id = {} ставит лайк пользователь с id = {}", id, userId);
-        if (!doFilmAndUserExist(id, userId)) {
+        if (!doesFilmExist(id) || !doesUserExist(userId)) {
             throw new NoSuitableUnitException("Фильм или пользователь с указанными id не существуют!");
         }
 
-        Film film = filmStorage.get(id);
-        film.addUserLike(userId);
-        return film;
+        return filmStorage.putLike(id, userId);
     }
 
     public Film deleteLike(Long id, Long userId) {
         log.info("Удаление лайка у фильма с id = {} от пользователя с id = {}", id, userId);
-        if (!doFilmAndUserExist(id, userId)) {
+        if (!doesFilmExist(id) || !doesUserExist(userId)) {
             throw new NoSuitableUnitException("Фильм или пользователь с указанными id не существуют!");
         }
 
-        Film film = filmStorage.get(id);
-        film.deleteUserLike(userId);
-        return film;
+        return filmStorage.deleteLike(id, userId);
     }
 
     public List<Film> getMostLikedFilms(Integer listSize) {
@@ -89,19 +93,20 @@ public class FilmService {
         }
     }
 
-    private void checkFilmParams(Film film) {
+    private boolean areFilmParamsCorrect(Film film) {
         if (film == null
                 || film.getDescription().length() > MAX_LENGTH
                 || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Введены некорректные параметры фильма!");
+            return false;
         }
+        return true;
     }
 
-    private boolean doFilmAndUserExist(Long filmId, Long userId) {
-        if (filmStorage.getValues().containsKey(filmId)
-                && userStorage.getValues().containsKey(userId)) {
-            return true;
-        }
-        return false;
+    private boolean doesUserExist(Long userId) {
+        return userStorage.doUsersExist(userId);
+    }
+
+    private boolean doesFilmExist(Long filmId) {
+        return filmStorage.doesFilmExist(filmId);
     }
 }

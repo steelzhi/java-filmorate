@@ -19,21 +19,25 @@ public class FilmController extends CrudController<Film> {
         this.filmService = filmService;
     }
 
+    @Override
     @PostMapping
     public Film create(@RequestBody @Valid Film film) {
         return filmService.create(film);
     }
 
+    @Override
     @PutMapping
     public Film update(@RequestBody @Valid Film film) {
         return filmService.update(film);
     }
 
+    @Override
     @GetMapping
     public List<Film> get() {
         return filmService.get();
     }
 
+    @Override
     @GetMapping("/{id}")
     public Film get(@PathVariable Long id) {
         return filmService.get(id);

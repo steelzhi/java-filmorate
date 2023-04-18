@@ -5,12 +5,9 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-@Component
+@Component("inMemoryUserStorage")
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private long id = 1;
@@ -55,6 +52,22 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(id);
     }
 
+    public Set<Long> addFriend(Long id, Long friendId) {
+        User user = users.get(id);
+        User friendOfUser = users.get(friendId);
+        user.addFriend(friendId);
+        friendOfUser.addFriend(id);
+        return user.getFriendsIds();
+    }
+
+    public Set<Long> deleteFriend(Long id, Long friendId) {
+        User user = users.get(id);
+        User friendOfUser = users.get(friendId);
+        user.deleteFriend(friendId);
+        friendOfUser.deleteFriend(id);
+        return user.getFriendsIds();
+    }
+
     @Override
     public Map<Long, User> getValues() {
         Map<Long, User> copyOfUsers = new HashMap<>(users);
@@ -66,5 +79,14 @@ public class InMemoryUserStorage implements UserStorage {
             user.setName(user.getLogin());
         }
         return user;
+    }
+
+    public boolean doUsersExist(Long... receivedUsersIds) {
+        for (Long id : receivedUsersIds) {
+            if (!users.containsKey(id)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

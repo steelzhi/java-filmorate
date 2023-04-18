@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NoSuitableUnitException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -14,7 +15,7 @@ import java.util.*;
 public class UserService {
     private final UserStorage userStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -25,6 +26,10 @@ public class UserService {
 
     public User update(User user) {
         checkUserParams(user);
+        if (!doUsersExist(user.getId())) {
+            throw new NoSuitableUnitException(
+                    "Пользователь с введенным id отсутствует в списке пользователей.");
+        }
         return userStorage.update(user);
     }
 
@@ -43,11 +48,7 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = getUsers().get(id);
-        User friendOfUser = getUsers().get(friendId);
-        user.addFriend(friendId);
-        friendOfUser.addFriend(id);
-        return user.getFriendsIds();
+        return userStorage.addFriend(id, friendId);
     }
 
     public Set<Long> deleteFriend(Long id, Long friendId) {
@@ -57,11 +58,7 @@ public class UserService {
                     "Пользователь(-ли) с введенным(-ми) id отсутствует(-ют) в списке пользователей.");
         }
 
-        User user = getUsers().get(id);
-        User friendOfUser = getUsers().get(friendId);
-        user.deleteFriend(friendId);
-        friendOfUser.deleteFriend(id);
-        return user.getFriendsIds();
+        return userStorage.deleteFriend(id, friendId);
     }
 
     public List<User> getFriends(Long id) {
@@ -101,17 +98,12 @@ public class UserService {
     private void checkUserParams(User user) {
         if (user.getLogin().contains(" ")) {
             log.info("Попытка добавить пользователя с пробелом в логине.");
-            throw new ValidationException("Введены некорректный логин пользователя!");
+            throw new ValidationException("Введен некорректный логин пользователя!");
         }
     }
 
     private boolean doUsersExist(Long... receivedUsersIds) {
-        for (Long id : receivedUsersIds) {
-            if (!getUsers().containsKey(id)) {
-                return false;
-            }
-        }
-        return true;
+        return userStorage.doUsersExist(receivedUsersIds);
     }
 
     private List<User> getUsersByIds(Set<Long> ids) {
